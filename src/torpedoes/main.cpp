@@ -59,6 +59,123 @@ cv::Mat equalColorHist(cv::Mat& img, bool red, bool green, bool blue)
 	return result;
 }
 
+cv::Mat torpedo_board_yellow(cv::Mat &src){
+	//define variables and read image 
+	cv::Mat light_corrected, color_balanced, dst, equalized, denoised, light_corrected_ii, denoised_ii, yellow_filter;
+ 
+	////////////////////////////////////////////////////////////	
+	//start with illumination correction
+	light_corrected = rgb_illumination(src, 120);
+ 
+	//whitebalance corrected image // makes it look funny and really overcoloured, but helps
+	color_crop::whitebalance_simple_wrapper(light_corrected, color_balanced, .06, .06);
+ 
+	//blur and correct light to remove noise caused by whitebalancing
+	cv::medianBlur(color_balanced, denoised, 15); 
+	light_corrected_ii = rgb_illumination(denoised, 90);
+	/////////////////////////////////////////////////////////////
+ 
+	/////////////////////////////////////////////////////////
+	//equalize hist // the illumination correction really helps with this, otherwise, it's distorted even worse
+	//split into channels
+	std::vector<cv::Mat> equal_channels;
+	split(light_corrected_ii, equal_channels);
+ 
+	//run equalization on each channel separately 
+	for(int i = 0; i < 3; i++) equalizeHist(equal_channels[i], equal_channels[i]);
+ 
+	//merge back together;
+	cv::merge(equal_channels, equalized); 
+ 
+	//medianblur to remove the noise caused by equalization
+	cv::medianBlur(equalized, denoised_ii, 25); 
+	///////////////////////////////////////////////////////////////
+ 
+ 
+	
+	//filter out values not likely to be yellow
+	yellow_filter = blacklist(denoised_ii, 80, 80);
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	//the green channel is most likely to show the torpedoes; discard other channels and just keep green as b&w 
+	cv::Mat g;
+	//split apart channel to take green 
+	std::vector<cv::Mat> filter_channels;
+	split(yellow_filter, filter_channels);
+
+	g = filter_channels[1];
+	
+	//number of likely points to find
+	int squares = 10;
+ 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+	//cycle through and find the few brightest points likely to be the torpedo board
+
+	int erosion_size = 5;
+	
+	cv::Mat element = cv::getStructuringElement( cv::MORPH_ELLIPSE, cv::Size( 2*erosion_size + 1, 2*erosion_size+1 ), cv::Point( erosion_size, erosion_size ) );
+	cv::erode( g, g, element );
+
+	std::vector <bright_point> found_points;
+
+	cv::Mat display = g.clone();
+
+	for(int i = 0; i < squares; i++){
+
+		found_points.push_back(bright_point());
+		
+		//find brightest point to identify as torpedoes 
+		double gmin, gmax;
+		cv::Point gminloc, gmaxloc;
+		cv::minMaxLoc(g, &gmin, &gmax, &gminloc, &gmaxloc);
+	 
+		//if it is the point to highlight, draw a cyan 20x20 square around the point
+		if(i == 0){ 
+			cv::rectangle( 
+				src, 
+				cv::Point(gmaxloc.x - 10, gmaxloc.y - 10), 
+				cv::Point(gmaxloc.x + 10, gmaxloc.y + 10), 
+				cv::Scalar(255, 255, 0), 1, 8
+			);
+		}
+ 
+		//if it is not the point to highlight, but a possible point, draw a reddish square around with intensity based on likelihood
+		else{
+			cv::rectangle( 
+				src, 
+				cv::Point(gmaxloc.x - 10, gmaxloc.y - 10), 
+				cv::Point(gmaxloc.x + 10, gmaxloc.y + 10), 
+				cv::Scalar(0, 0,(255/squares) * i), 1, 8
+			);
+		}
+ 
+		//draw a black rectangle around the point so we don't get the same cluster of points over and over 
+		cv::rectangle( 
+			g, 
+			cv::Point(gmaxloc.x - 10, gmaxloc.y - 10), 
+			cv::Point(gmaxloc.x + 10, gmaxloc.y + 10), 
+			cv::Scalar(0), -1, 8
+		);
+
+		//save to vector
+		found_points[i].location = gmaxloc;
+
+		found_points[i].brightness = gmax;
+	
+	}
+ 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	//find if points are close and count them as clusters
+
+	cv::imshow("g", display);
+	cv::imshow("blacklist", yellow_filter); 
+	cv::imshow("src", src);
+	cv::imshow("median_blur", denoised);
+	cv::waitKey(0);
+} 
+
 int main(int argc, char** argv)
 {
 	FILE* in = stdin;

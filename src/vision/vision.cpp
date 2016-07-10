@@ -100,3 +100,118 @@ int floodFill(const cv::Mat& img, std::vector<std::vector<bool> >& visited, int 
 			floodFill(img, visited, row, col - 1, threshold);
 	}
 }
+ 
+///////////////////////////////////////// 
+//single channel illumination correction
+//for more details, https://clouard.users.greyc.fr/Pantheon/experiments/illumination-correction/index-en.html 
+cv::Mat illumination_correction(cv::Mat const &correction_src, int blur_kernel_size){
+        cv::Mat blurred_img, diff_img, corrected_img;
+        cv::Scalar mean_val;
+
+        //Gaussian Blur only accepts odd kernel sizes
+        int corrected_kernel = (blur_kernel_size * 2) + 1;
+ 
+        //blur the image to find large areas of difference on each channel, likely to be illumination differences
+        cv::GaussianBlur(correction_src, blurred_img, cv::Size(corrected_kernel, corrected_kernel), 0, 0); 
+ 
+        //subtract lighting differences from the image 
+        diff_img = correction_src - blurred_img;
+        mean_val = mean(blurred_img);
+ 
+        //add the average value to bring it up to normal brightness
+        corrected_img = diff_img + cv::sum(mean_val)[0];
+
+
+        return corrected_img;
+} 
+////////////////////////////////////////////
+
+///////////////////////////////////////////
+//wrapper for illumination correction that splits an rgb image and applies it to each channel
+//might work better in hls
+cv::Mat rgb_illumination(cv::Mat const &correction_src, int blur_kernel_size){
+    
+        cv::Mat dst;
+ 
+        //define a vector to split the image channels into      
+        std::vector<cv::Mat> channels;
+        split(correction_src,channels);
+ 
+        //cycle through and feed each channel into illumination correction
+        for(int i = 0; i < 3; i++) channels[i] = illumination_correction(channels[i], blur_kernel_size);
+    
+        //merge the channels back together 
+        cv::merge(channels, dst);
+
+        return dst;
+}
+////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////
+/////seth's whitebalance
+/////funky but cool
+void whitebalance_simple(const cv::Mat& src, cv::Mat& dst,
+                float s1, float s2, int outmin, int outmax)
+{
+        if ((s1 > 1) || (s2 > 1))
+        {
+                dst = src;
+                return;
+        }
+
+        int hist[256] = {0};
+        const int numpix = src.rows*src.cols;
+        // make histogram of pixel vals
+        const unsigned char *srcdata = src.ptr();
+        for (int i = 0; i < numpix; ++i)
+        {
+                ++hist[(int)(srcdata[i])];
+        }
+        
+        // find lowest val in range
+        int     minv = 0; // lowest val in range
+        {
+                const int n1 = s1*numpix; // num pixels out of range on low end
+                for (int num = 0; num < n1;)
+                {
+                        num += hist[minv];
+                        ++minv;
+                }
+        }
+        // find higest val in range
+        int maxv = 255; // higest val in range
+        {
+                const int n2 = s2*numpix; // num pixels out of range on high end
+                for (int num = 0; num < n2;)
+                {
+                        num += hist[maxv];
+                        --maxv;
+                }
+        }
+
+        // scale vals
+        const float scale = ((float)(outmax - outmin))/((float)(maxv - minv));
+        cv::Mat tmp(src.rows, src.cols, src.type());
+        unsigned char *dstdata = tmp.ptr();
+        for (int i = 0; i < numpix; ++i)
+        {
+                dstdata[i] = trunc((int)(scale*(srcdata[i] - minv) + outmin), outmin, outmax);
+        }
+        dst = tmp;
+}
+
+/////////////////////////////////////////////////////////
+void whitebalance_simple_wrapper(const cv::Mat& src,
+                cv::Mat& dst,
+float s1, float s2, int outmin, int outmax)
+{
+        const int numchannels = 3;
+        cv::Mat channels[numchannels];
+        cv::split(src, channels);
+        for (int i = 0; i < numchannels; ++i)
+        {
+                whitebalance_simple(channels[i], channels[i], s1, s2, outmin, outmax);
+        }
+        cv::merge(channels, numchannels, dst);
+}
+

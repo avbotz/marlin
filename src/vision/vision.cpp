@@ -147,74 +147,6 @@ cv::Mat rgb_illumination(cv::Mat const &correction_src, int blur_kernel_size){
 }
 ////////////////////////////////////////////////////////////
 
-/////////////////////////////////////////////////////////
-/////seth's whitebalance
-/////funky but cool
-void whitebalance_simple(const cv::Mat& src, cv::Mat& dst,
-                float s1, float s2, int outmin, int outmax)
-{
-        if ((s1 > 1) || (s2 > 1))
-        {
-                dst = src;
-                return;
-        }
-
-        int hist[256] = {0};
-        const int numpix = src.rows*src.cols;
-        // make histogram of pixel vals
-        const unsigned char *srcdata = src.ptr();
-        for (int i = 0; i < numpix; ++i)
-        {
-                ++hist[(int)(srcdata[i])];
-        }
-        
-        // find lowest val in range
-        int     minv = 0; // lowest val in range
-        {
-                const int n1 = s1*numpix; // num pixels out of range on low end
-                for (int num = 0; num < n1;)
-                {
-                        num += hist[minv];
-                        ++minv;
-                }
-        }
-        // find higest val in range
-        int maxv = 255; // higest val in range
-        {
-                const int n2 = s2*numpix; // num pixels out of range on high end
-                for (int num = 0; num < n2;)
-                {
-                        num += hist[maxv];
-                        --maxv;
-                }
-        }
-
-        // scale vals
-        const float scale = ((float)(outmax - outmin))/((float)(maxv - minv));
-        cv::Mat tmp(src.rows, src.cols, src.type());
-        unsigned char *dstdata = tmp.ptr();
-        for (int i = 0; i < numpix; ++i)
-        {
-                dstdata[i] = trunc((int)(scale*(srcdata[i] - minv) + outmin), outmin, outmax);
-        }
-        dst = tmp;
-}
-
-/////////////////////////////////////////////////////////
-void whitebalance_simple_wrapper(const cv::Mat& src,
-                cv::Mat& dst,
-float s1, float s2, int outmin, int outmax)
-{
-        const int numchannels = 3;
-        cv::Mat channels[numchannels];
-        cv::split(src, channels);
-        for (int i = 0; i < numchannels; ++i)
-        {
-                whitebalance_simple(channels[i], channels[i], s1, s2, outmin, outmax);
-        }
-        cv::merge(channels, numchannels, dst);
-}
-
 /////////////////////////////////////////////////////
 //////////remove white removes pixels with similar r, g, and b values meaning that the image is likely greyscale
 cv::Mat remove_white(cv::Mat &src, int white_tolerance){
@@ -224,7 +156,7 @@ cv::Mat remove_white(cv::Mat &src, int white_tolerance){
                 for(int y = 0; y < src.rows; y++){
 
                         //remove pixels with r, g, and b values that are too close together; these are likely white
-                        /if(
+                        if(
                                 ((int)(abs(src.at<cv::Vec3b>(cv::Point(x, y))[2])) - (int)(src.at<cv::Vec3b>(cv::Point(x,y)))[1] < white_tolerance) &&
                                 ((int)(abs(src.at<cv::Vec3b>(cv::Point(x, y))[2])) - (int)(src.at<cv::Vec3b>(cv::Point(x,y)))[0] < white_tolerance)
                         ){

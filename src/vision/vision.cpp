@@ -157,8 +157,8 @@ cv::Mat remove_white(cv::Mat &src, int white_tolerance){
 
                         //remove pixels with r, g, and b values that are too close together; these are likely white
                         if(
-                                ((int)(abs(src.at<cv::Vec3b>(cv::Point(x, y))[2])) - (int)(src.at<cv::Vec3b>(cv::Point(x,y)))[1] < white_tolerance) &&
-                                ((int)(abs(src.at<cv::Vec3b>(cv::Point(x, y))[2])) - (int)(src.at<cv::Vec3b>(cv::Point(x,y)))[0] < white_tolerance)
+                                (abs((int)(src.at<cv::Vec3b>(cv::Point(x, y))[2]) - (int)(src.at<cv::Vec3b>(cv::Point(x,y))[1])) < white_tolerance) &&
+k                               (abs((int)(src.at<cv::Vec3b>(cv::Point(x, y))[2]) - (int)(src.at<cv::Vec3b>(cv::Point(x,y))[0])) < white_tolerance) &&
                         ){
 
                                 src.at<cv::Vec3b>(cv::Point(x,y))[0] = 0;

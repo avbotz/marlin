@@ -2,6 +2,17 @@
 
 #include "mission/mission.hpp"
 
+/**
+	Runs mission.
+
+	Mission writes commands to stdout and
+	reads information from stdin by default.
+
+	@param argv[1] the config file.
+		If not supplied, uses default config.
+	@param argv[2,3] the input and output files/pipes.
+		If not supplied, uses stdin and stdout.
+*/
 int main(int argc, char** argv)
 {
 	FILE* in = stdin;

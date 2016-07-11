@@ -32,12 +32,41 @@ bool lprintf(FILE*, FILE*, const std::string str)
 	return true;
 }
 
+/**
+	Sleeps for an amount of time.
+
+	@param in the file that mission writes to with
+		commands. Should be connected to interface.
+	@param out the file that mission reads from for
+		information. Also should be interface.
+
+	@param time the time it should sleep, in seconds.
+
+	@return true.
+*/
 bool wait(FILE* in, FILE* out, float time)
 {
 	std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(time * 1000)));
 	return true;
 }
 
+/**
+	Moves to a specified State.
+
+	Does not depend on the sub's current location.
+	Moves to an absolute point in modeling.
+
+	@param in the file that mission writes to with
+		commands. Should be connected to interface.
+	@param out the file that mission reads from for
+		information. Also should be interface.
+
+	@param target the State the sub should move to.
+	@param minDistance how close to the target the sub
+		should be before it stops moving.
+
+	@return true unless sub was killed in the process of moving.
+*/
 bool moveAbsolute(FILE* in, FILE* out, const State& target, float minDistance)
 {
 	setState(out, target);
@@ -56,6 +85,23 @@ bool moveAbsolute(FILE* in, FILE* out, const State& target, float minDistance)
 	return true;
 }
 
+/**
+	Move relative to the sub's current location.
+
+	Essentially adds the sub's current State to the
+	input state.
+
+	@param in the file that mission writes to with
+		commands. Should be connected to interface.
+	@param out the file that mission reads from for
+		information. Also should be interface.
+
+	@param diff the relative state to move to.
+	@param minDistance how close to the target the sub
+		should be before it stops moving.
+
+	@return true unless sub was killed in the process of moving.
+*/
 bool moveRelative(FILE* in, FILE* out, const State& diff, float minDistance)
 {
 	auto target = getState(in, out);
@@ -70,6 +116,23 @@ bool moveRelative(FILE* in, FILE* out, const State& diff, float minDistance)
 	return moveAbsolute(in, out, target, minDistance);
 }
 
+/**
+	Move relative to the sub's current location, in a certain direction.
+
+	Depends on sub's heading.
+
+	@param in the file that mission writes to with
+		commands. Should be connected to interface.
+	@param out the file that mission reads from for
+		information. Also should be interface.
+
+	@param change the State denoting how to move, with
+		x and y being forward/backward and left/right.
+	@param minDistance how close to the target the sub
+		should be before it stops moving.
+
+	@return true unless sub was killed in the process of moving.
+*/
 bool moveDir(FILE* in, FILE* out, const State& change, float minDistance)
 {
 	auto state = getState(in, out);
@@ -84,6 +147,17 @@ bool moveDir(FILE* in, FILE* out, const State& change, float minDistance)
 	return moveRelative(in, out, target, minDistance);
 }
 
+/**
+	Move to a location in modeling.
+
+	Moves to the location of an object in modeling,
+	provided the indices of the objects to move to.
+
+	@param in the file that mission writes to with
+		commands. Should be connected to interface.
+	@param out the file that mission reads from for
+		information. Also should be interface.
+*/
 bool moveModel(FILE* in, FILE* out, int xi, int yi, int zi, float xo, float yo, float zo, float minDistance)
 {
 	bool close = false;

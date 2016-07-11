@@ -10,6 +10,18 @@
 #include "mission/goal.hpp"
 #include "mission/config.hpp"
 
+/**
+	Main mission loop.
+
+	Mission keeps track of goals and coordinates
+	the actions of the sub by writing commands
+	to out and receiving information from in.
+
+	@param in the file that mission writes to with
+		commands. Should be connected to interface.
+	@param out the file that mission reads from for
+		information. Also should be interface.
+*/
 int mission(FILE* in, FILE* out, FILE* config)
 {
 	std::vector<Goal> goals;

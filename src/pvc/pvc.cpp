@@ -19,6 +19,20 @@ const float scalex = 0.4;
 const float scaley = 0.4;
 const float cutoff = 0.8;
 
+auto yfilter = [](float r, float g, float b){return (g - b) * 5 + r;}
+
+/**
+	Turns image into single row of pixels.
+
+	Flattens each column into a single pixel,
+	with that pixel being the average intensity
+	of the column of pixels.
+
+	@param img the image to flatten, of type CV_32FC1.
+
+	@return the vector of flattened pixels,
+		x being the x value of the point and y the intensity.
+*/
 std::vector<cv::Point2f> flatten(cv::Mat& img)
 {
 	std::vector<cv::Point2f> points;
@@ -40,18 +54,21 @@ std::vector<cv::Point2f> flatten(cv::Mat& img)
 	return points;
 }
 
-float getYellow(float r, float g, float b)
-{
-	return (g - b) * 5 + r;
-}
+/**
+	Get the most intense points.
 
-bool comparePoints(cv::Point2f& a, cv::Point2f& b)
-{
-	return a.y > b.y;
-}
+	Finds the most intense points that are at least
+	minDist away from each other in terms of points[i].x.
 
+	@param points the vector of points, with
+		x being x value of point and y the intensity.
+	@param num the int denoting number of brightest points to return.
+
+	@return the top [num] points found.
+*/
 std::vector<cv::Point2f> bestPoints(std::vector<cv::Point2f> points, int num)
 {
+	auto comparePoints = [](cv::Point2f& a, cv::Point2f& b) {return a.y > b.y;}
 	std::vector<cv::Point2f> top;
 	std::sort(points.begin(), points.end(), comparePoints);
 
@@ -75,6 +92,14 @@ std::vector<cv::Point2f> bestPoints(std::vector<cv::Point2f> points, int num)
 	return top;
 }
 
+/**
+	Draws circles of width cwidth on img.
+
+	@param img the cv::Mat to draw circles on.
+	@param pts the list of points denoting where to draw the circles.
+
+	@return the image with circles drawn on it.
+*/
 cv::Mat dispPoints(cv::Mat img, std::vector<cv::Point2f> pts, int cwidth)
 {
 	cv::Mat disp(img);
@@ -85,7 +110,17 @@ cv::Mat dispPoints(cv::Mat img, std::vector<cv::Point2f> pts, int cwidth)
 	return disp;
 }
 
-void pResults(FILE* in, FILE* out, std::vector<cv::Point2f>& pts, int cols)
+/**
+	Prints an observation of the PVC to out.
+
+	Takes the average between the two points and sends that
+	as an observation to the FILE* out. If there are more/less
+	than two points, sends 0 observations.
+
+	@param out the file to write the observation to.
+	@param pts the locations of the two sides of PVC.
+*/
+void pResults(FILE* out, std::vector<cv::Point2f>& pts, int cols)
 {
 	if(pts.size() != 2 || pts[1].y < cutoff*pts[0].y) {fprintf(out, "0\n"); return;}
 
@@ -100,6 +135,12 @@ void pResults(FILE* in, FILE* out, std::vector<cv::Point2f>& pts, int cols)
 	fflush(out);
 }
 
+/**
+	Run pvc using stdin, stdout, and stderr.
+
+	Takes in no arguments. Images are read from stdin,
+	observations written to stdout, and logs written to stderr.
+*/
 int main(int argc, char** argv)
 {
 	FILE* in = stdin;
@@ -112,7 +153,7 @@ int main(int argc, char** argv)
 
 		cv::resize(img, img, cv::Size(img.cols*scalex, img.rows*scaley));
 
-		cv::Mat yelo = filter(img, getYellow); //Enhance to make pvc show up
+		cv::Mat yelo = filter(img, yfilter); //Enhance to make pvc show up
 
 		cv::Mat diff = generateDiffMap(yelo, minDist/2, true);
 
@@ -120,7 +161,7 @@ int main(int argc, char** argv)
 		
 		std::vector<cv::Point2f> pts = bestPoints(flatten(scaled), 2);
 		
-		pResults(in, out, pts, img.cols);
+		pResults(out, pts, img.cols);
 
 		imageWrite(log, dispPoints(img, pts, 5));
 	}

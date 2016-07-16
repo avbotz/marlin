@@ -208,6 +208,7 @@ cv::Point torpedoCover(cv::Mat inputImage)
 
     //Post color balance image
     cv::Point maxOrangePoint;
+    cv::Mat balancedImage;
     cv::merge(imageChannels, balancedImage);
 
     //Set image height and width for pixel loop

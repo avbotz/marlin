@@ -672,7 +672,7 @@ float Blob::getConvexHullArea()
 		area_neg += convexHull[i].y * convexHull[(i+1)%convexHull.size()].x;
 	}
 	
-	return abs((area_pos - area_neg)/2.0f);
+	return std::abs((area_pos - area_neg)/2.0f);
 }
 
 

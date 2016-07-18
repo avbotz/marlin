@@ -15,6 +15,10 @@ FLYCAP = $(THIRDPARTY)/flycapture/
 FLYCAP_CFLAGS = -I$(SRC) -I$(FLYCAP)/include/
 FLYCAP_LFLAGS = -L$(FLYCAP)/lib -lflycapture -Wl,-rpath=$(FLYCAP)/lib/
 
+WIIUSE = $(THIRDPARTY)/wiiuse/
+WIIUSE_CFLAGS = -I$(SRC) -I$(WIIUSE)/include/
+WIIUSE_LFLAGS = -L$(WIIUSE)/lib -lwiiuse -Wl,-rpath=$(WIIUSE)/lib/
+
 
 COMMON = $(patsubst %,$(BUILD)/common/%.o,matrix state observation config)
 COMMON_CFLAGS = 
@@ -80,10 +84,9 @@ SIM_STATE = $(patsubst %,$(BUILD)/sim_state/%.o,main) $(COMMON)
 SIM_STATE_CFLAGS = -pthread
 SIM_STATE_LFLAGS = -pthread -latomic
 
-
 WIIMOTE = $(patsubst %,$(BUILD)/wiimote/%.o,wiimote) $(COMMON)
-WIIMOTE_CFLAGS = 
-WIIMOTE_LFLAGS = -lwiiuse
+WIIMOTE_CFLAGS = $(WIIUSE_CFLAGS)
+WIIMOTE_LFLAGS = $(WIIUSE_LFLAGS)
  
 EXE_NAMES = modeling interface mission camera camera_pipe buoys pvc torpedoes dropper image_read image_show image_log sim_state wiimote
 

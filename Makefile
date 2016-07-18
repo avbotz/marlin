@@ -81,7 +81,11 @@ SIM_STATE_CFLAGS = -pthread
 SIM_STATE_LFLAGS = -pthread -latomic
 
 
-EXE_NAMES = modeling interface mission camera camera_pipe buoys pvc torpedoes dropper image_read image_show image_log sim_state
+WIIMOTE = $(patsubst %,$(BUILD)/wiimote/%.o,wiimote) $(COMMON)
+WIIMOTE_CFLAGS = 
+WIIMOTE_LFLAGS = -lwiiuse
+ 
+EXE_NAMES = modeling interface mission camera camera_pipe buoys pvc torpedoes dropper image_read image_show image_log sim_state wiimote
 
 EXE = $(patsubst %,$(BIN)/%,$(EXE_NAMES))
 
@@ -125,6 +129,9 @@ $(BIN)/image_log: $(IMAGE_LOG)
 
 $(BIN)/sim_state: $(SIM_STATE)
 	$(CC) $^ $(LFLAGS) $(SIM_STATE_LFLAGS) -o $@
+
+$(BIN)/wiimote: $(WIIMOTE)
+	$(CC) $^ $(LFLAGS) $(WIIMOTE_LFLAGS) -o $@
 
 $(BUILD)/common/%.o: $(SRC)/common/%.cpp
 	$(CC) $(CFLAGS) $< -o $@
@@ -176,6 +183,9 @@ $(BUILD)/image_log/%.o: $(SRC)/image_log/%.cpp
 
 $(BUILD)/sim_state/%.o: $(SRC)/sim_state/%.cpp
 	$(CC) $(CFLAGS) $(SIM_STATE_CFLAGS) $< -o $@
+ 
+$(BUILD)/wiimote/%.o: $(SRC)/wiimote/%.c
+	$(CC) $(CFLAGS) $(WIIMOTE_CFLAGS) $< -o $@
 
 clean:
 	rm -f $(EXE)

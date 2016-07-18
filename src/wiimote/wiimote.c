@@ -54,10 +54,10 @@
  *	This function is called automatically by the wiiuse library when an
  *	event occurs on the specified wiimote.
  */
-const float X_SCALE = 1;
-const float Y_SCALE = 1;
-const float DEPTH_SCALE = 1;
-const float YAW_SCALE = .25;
+const float X_SCALE = .5;
+const float Y_SCALE = .5;
+const float DEPTH_SCALE = .5;
+const float YAW_SCALE = .1;
 enum {X, Y, DEPTH, YAW, PITCH, ROLL};
 float  desired_property[6] = {0};
 float  current_property[6] = {0};
@@ -100,11 +100,9 @@ void send_state() {
 	fflush(stdout);
 
 }
+ 
 void handle_event(struct wiimote_t* wm) {
 	get_state();
-	for(int i = 0; i < 6; i++){
-		desired_property[i] = 0;
-	}
 	/* if a button is pressed, report it */
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_A)) {
 	}

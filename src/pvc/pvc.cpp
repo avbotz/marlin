@@ -94,7 +94,7 @@ void pResults(FILE* in, FILE* out, std::vector<cv::Point2f>& pts, int cols)
 	float theta = fhFOV * (pts[0].x + pts[1].x - cols) / (2*cols);
 	float dist = pvcWidth/2 / std::tan((std::max(pts[0].x - pts[1].x, pts[1].x - pts[0].x))/cols * fhFOV / 2 * 2*M_PI);
 
-	fprintf(out, "%zu %zu -2\n%f 0 %f\n",
+	fprintf(out, "%i %i -2\n%f 0 %f\n",
 		M_PVC_X, M_PVC_Y,
 		theta, dist);
 	fflush(out);

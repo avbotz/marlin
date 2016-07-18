@@ -59,7 +59,7 @@ cv::Mat filter(const cv::Mat& img, std::function<float(float, float, float)> f)
 
 	for (size_t row = 0; row < img.rows; row++)
 		for (size_t col = 0; col < img.cols; col++)
-			res.at<float>(row, col) = f(img.at<cv::Vec3b>(row, col)[2], img.at<cv::Vec3b>(row, col)[1], img.at<cv::Vec3b>(row, col)[0]);
+			res.at<float>(row, col) = f(img.at<cv::Vec3b>(row, col)[2] / 256.f, img.at<cv::Vec3b>(row, col)[1] / 256.f, img.at<cv::Vec3b>(row, col)[0] / 256.f);
 
 	return res;
 }
@@ -102,12 +102,15 @@ int floodFill(const cv::Mat& img, std::vector<std::vector<bool> >& visited, int 
 }
 
 // assume the NeuralNetwork object is set up correctly (3 inputs, 1 output)
-float nnFilter(const NeuralNetwork& nn, float r, float g, float b)
+std::function<float(float, float, float)> nnFilter(const NeuralNetwork& nn)
 {
-	const Matrix inputs = {{r}, {g}, {b}};
+	return [=](float r, float g, float b)
+	{
+		const Matrix inputs = {{r}, {g}, {b}};
 
-	auto outputs = nn.apply(inputs);
+		auto outputs = nn.apply(inputs);
 
-	return outputs.get(0);
+		return outputs.get(0);
+	};
 }
 

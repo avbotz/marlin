@@ -17,8 +17,6 @@
 #include "vision/blob_detection.hpp"
 #include "image/image.hpp"
 
-auto ofilter = [](float r, float g, float b){ return .7*r/(g+.001) - .4*g/(b+.001); };
-
 const float cropx = 1.0;
 const float cropy = 1.0;
 const float offset = 0.9 * (1 - cropy);
@@ -102,6 +100,9 @@ int main(int argc, char** argv)
 			continue;
 		}
 
+		cv::Mat image_orig;
+		image.copyTo(image_orig);
+
 		//Crop and resize image
 		cv::resize(image(cv::Rect(image.cols*(1-cropx)/2, image.rows*(1-cropy-offset)/2, 
 			image.cols*cropx, image.rows*cropy)), image, 
@@ -117,9 +118,34 @@ int main(int argc, char** argv)
 		cv::Mat imgB;
 		cv::blur(image, imgB, cv::Size(3, 3));
 
-		cv::Mat imgF = filter(imgB, ofilter);
+		auto nn = nnFilter(
+		{
+			{
+				{ -31.24248886,   15.26303673,   -3.1319592},
+				{  -7.5420475 ,   15.32956123,   22.78780556},
+				{  18.96827316, -104.11196899,  -21.70586586},
+				{   5.77539253,  -12.49763107,  -18.34315109},
+			},
+			{
+				{-0.29773164},
+				{20.6458149},
+				{107.48106384},
+				{-16.6441021},
+			},
+			{{-10.3265419 , -35.6080513 ,  57.83471298,  10.05905247},},
+			{{-18.51780128}},
+		});
+		auto imgF = filter(imgB, nn);
 
-		cv::Mat imgS = scaleIntensity(imgF);
+		cv::Mat imgE;
+		int radius = 5;
+		cv::erode(imgF, imgE, cv::getStructuringElement(
+			cv::MORPH_ELLIPSE,
+			cv::Size(2 * radius + 1, 2 * radius + 1),
+			cv::Point(radius, radius)
+		));
+
+		cv::Mat imgS = scaleIntensity(imgE);
 
 		auto img = imgS;
 
@@ -151,7 +177,9 @@ int main(int argc, char** argv)
 		).write(out);
 
 		cv::Mat imgP;
-		image.copyTo(imgP);
+//		image.copyTo(imgP);
+		cv::cvtColor(imgS, imgP, CV_GRAY2BGR);
+		static_cast<cv::Mat>(imgP*255).convertTo(imgP, CV_8UC3);
 		cv::circle(imgP, cv::Point(mc, mr), 3, cv::Scalar(0, 255, 255));
 		imageWrite(log, imgP);
 	}

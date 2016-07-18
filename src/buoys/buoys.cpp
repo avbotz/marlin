@@ -29,7 +29,23 @@ std::vector<Buoy> buoys =
 	},
 	{
 		M_YBUOY_X, M_YBUOY_Y, M_YBUOY_D, {1,0,0},
-		[](float r, float g, float b){ return .5+(r+g-b)/4; }
+		nnFilter(
+		{
+			{
+				{  46.85415268, -107.30097198,  100.08049011},
+				{-61.59093475,   95.11291504,   64.77831268},
+				{  24.69617271,  116.03449249, -220.81503296},
+				{-153.43617249,  163.44508362, -111.20446777},
+			},
+			{
+				{-21.81101036},
+				{-124.47380829},
+				{86.83537292},
+				{4.44423008},
+			},
+			{{-9.57674789,  -8.67415428, -70.69998932, -52.24337387},},
+			{{4.38262653}},
+		})
 	},
 	{
 		M_GBUOY_X, M_GBUOY_Y, M_GBUOY_D, {0,1,0},
@@ -178,7 +194,7 @@ int main(int argc, char** argv)
 			cv::circle(imgL, cv::Point(mc, mr), 3, cv::Scalar(255*b.color[0], 255*b.color[1], 255*b.color[2]));
 		}
 
-		fprintf(out, "%u\n", found.size());
+		fprintf(out, "%zu\n", found.size());
 		for (auto f : found)
 			fprintf(out, "%zu %zu %zu\n%f %f %f\n",
 				f.x_idx, f.y_idx, f.d_idx,

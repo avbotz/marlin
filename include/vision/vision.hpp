@@ -14,7 +14,7 @@ cv::Mat filter(const cv::Mat&, std::function<float(float, float, float)>);
 cv::Mat scaleIntensity(const cv::Mat&);
 int floodFill(const cv::Mat&, std::vector<std::vector<bool> >&, int, int, float);
 
-float nnFilter(const NeuralNetwork&, float, float, float);
+std::function<float(float, float, float)> nnFilter(const NeuralNetwork&);
 
 #endif
 

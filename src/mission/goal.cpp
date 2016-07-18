@@ -37,7 +37,7 @@ size_t Goal::write(FILE* out)
 {
 	size_t numBytes = 0;
 
-	numBytes += fprintf(out, "%f %f %i %i %i %f %f %f %f %i\n",
+	numBytes += fprintf(out, "%f %f %i %i %i %f %f %f %f %zu\n",
 		m_value, m_time,
 		m_xi, m_yi, m_di,
 		m_xo, m_yo, m_do,

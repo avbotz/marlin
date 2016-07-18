@@ -55,7 +55,7 @@ Matrix::Matrix(FILE* in)
 size_t Matrix::write(FILE* out) const
 {
 	size_t bytes = 0;
-	bytes += std::fprintf(out, "%i %i ", m_rows, m_cols);
+	bytes += std::fprintf(out, "%zu %zu ", m_rows, m_cols);
 	for (int i = 0; i < m_rows * m_cols; i++)
 		bytes += std::fprintf(out, "%f ", m_data[i]);
 	bytes += std::fprintf(out, "\n");
@@ -120,7 +120,7 @@ Matrix Matrix::operator*(const Matrix& a) const
 		{
 			res.m_data[i * res.cols() + j] = 0;
 			for (int k = 0; k < cols(); k++)
-				res.m_data[i * res.cols() + j] += get(i, j) * a.get(k, j);
+				res.m_data[i * res.cols() + j] += get(i, k) * a.get(k, j);
 		}
 	}
 

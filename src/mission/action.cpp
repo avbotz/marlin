@@ -138,8 +138,8 @@ bool moveExt(FILE* in, FILE* out, float xa, float xd, int xi, int xr, float ya, 
 
 		auto target = State(
 		{
-			xa + dx + model.get(xi) + xr*cx,
-			ya + dy + model.get(yi) + yr*cy,
+			static_cast<float>(xa + dx + model.get(xi) + xr*cx),
+			static_cast<float>(ya + dy + model.get(yi) + yr*cy),
 			da + model.get(di) + dr*cd,
 			dt,
 			pa,

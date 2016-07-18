@@ -218,7 +218,7 @@ int main(int argc, char** argv)
 		}
 		imageWrite(log, imgP);
 
-		fprintf(out, "%i\n", observations.size());
+		fprintf(out, "%zu\n", observations.size());
 		for (auto o : observations)
 			o.write(out);
 		fflush(out);

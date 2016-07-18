@@ -10,5 +10,5 @@ Then `make bin/wiimote` and it should be all set up.
 
 ### Usage
 
-Run the bash script to test the program with sim state. There should be another bash script to test on the sub as soon as we get around to that.
+Uncomment a specified line in the bash script (should be obvious) that Evan should make soon and then remove this bit to run it in sim. There should be another bash script to test on the sub as soon as we get around to that.
 

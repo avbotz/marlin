@@ -59,6 +59,46 @@ cv::Mat equalColorHist(cv::Mat& img, bool red, bool green, bool blue)
 	return result;
 }
 
+cv::Mat filterPurple(const cv::Mat& src)
+{
+    cv::vector<cv::Mat> imageChannels;
+    cv::vector<cv::Mat> finalChannels;
+    
+    cv::Mat input = src.clone();
+    
+    split(input, imageChannels);
+    
+    for (int i = 0; i < 3; i++) {
+        equalizeHist(imageChannels[i], imageChannels[i]);
+    }
+    
+    merge(imageChannels, input);
+    
+    cv::Mat purple = input;
+    
+    for(int y=0; y<purple.rows; y++)
+    {
+        for(int x=0; x<purple.cols; x++)
+        {
+            cv::Vec3b color = purple.at<cv::Vec3b>(cv::Point(x,y));
+            if(color[2] > 100 || color[1] > 100 || (color[1] > color[2]) || color[0] < 50 || (abs(color[2] - color[1]))<10)
+            {
+                color[0] = 0;
+                color[1] = 0;
+                color[2] = 0;
+                purple.at<cv::Vec3b>(cv::Point(x,y)) = color;
+            }
+        }
+    }
+    
+    GaussianBlur(purple, purple, cv::Size(35, 35), 0);
+    
+    split(purple, finalChannels);
+    cv::Mat foundPurple = finalChannels[0];
+    
+    return foundPurple;
+}
+
 int main(int argc, char** argv)
 {
 	FILE* in = stdin;

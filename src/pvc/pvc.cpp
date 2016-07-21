@@ -40,7 +40,27 @@ std::vector<cv::Point2f> flatten(cv::Mat& img)
 	return points;
 }
 
-float getYellow(float r, float g, float b)
+/*
+auto yfilter = nnFilter(
+{
+	{
+		{0, 0, 0},
+		{0, 0, 0},
+		{0, 0, 0},
+		{0, 0, 0},
+	},
+	{
+		{0},
+		{0},
+		{0},
+		{0},
+	},
+	{{0, 0, 0, 0}},
+	{{0}},
+});
+*/
+
+float yfilter(float r, float g, float b)
 {
 	return (g - b) * 5 + r;
 }
@@ -112,7 +132,7 @@ int main(int argc, char** argv)
 
 		cv::resize(img, img, cv::Size(img.cols*scalex, img.rows*scaley));
 
-		cv::Mat yelo = filter(img, getYellow); //Enhance to make pvc show up
+		cv::Mat yelo = filter(img, yfilter); //Enhance to make pvc show up
 
 		cv::Mat diff = generateDiffMap(yelo, minDist/2, true);
 

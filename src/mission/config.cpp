@@ -76,7 +76,7 @@ const std::vector<Goal> initialGoals =
 		{ setSpeed, .5f },
 		{ wait, 3 },
 		{ turnTo, M_PVC_X, M_PVC_Y },
-		{ moveExt, 0, 0, M_PVC_X, 0, 0, 0, M_PVC_Y, 0, 2.3, 0, 0, 0, 0, 1, 0, 0, .1 },
+		{ moveExt, 0, 0, M_PVC_X, 0, 0, 0, M_PVC_Y, 0, constants.get(C_PVC_D), 0, 0, 0, 0, 1, 0, 0, .1 },
 		{ setSpeed, .1f },
 		{ moveDir, State(5, 0, 0, 0, 0, 2), 1 }, // barrel roll
 		{ setSpeed, .3f },

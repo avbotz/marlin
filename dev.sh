@@ -24,7 +24,10 @@ stty -F ${FPGA} -echo -echoe -echok
 
 cat ${FPGA} | tee pipe/hydrophones_in >> logs/hydrophones_in &
 
-bin/camera i 0 1 < pipe/camera_f_in | tee pipe/camera_f_out | bin/image_log logs/ _f &
-bin/camera i 1 0 < pipe/camera_d_in | tee pipe/camera_d_out | bin/image_log logs/ _d &
+bin/camera i ${FRONT} 1 < pipe/camera_f_in | tee pipe/camera_f_out | bin/image_log logs/ _f &
+bin/camera i ${DOWN}  0 < pipe/camera_d_in | tee pipe/camera_d_out | bin/image_log logs/ _d &
+
+#bin/camera i ${FRONT} 1 < pipe/camera_f_in | tee pipe/camera_f_out | tee >(bin/image_show 1) | bin/image_log logs/ _f &
+#bin/camera i ${DOWN}  0 < pipe/camera_d_in | tee pipe/camera_d_out | tee >(bin/image_show 1) | bin/image_log logs/ _d &
 
 cat

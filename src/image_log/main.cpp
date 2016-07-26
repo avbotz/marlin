@@ -46,6 +46,8 @@ int main(int argc, char** argv)
 		int c = fgetc(in);
 		if (c == EOF) quit = true;
 		
+		cycles++;
+		
 	}
 	return 0;
 }

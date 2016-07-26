@@ -9,28 +9,6 @@
 
 #include "image/image.hpp"
 
-void flipImage(cv::Mat& img)
-{
-	int rows = img.rows;
-	int cols = img.cols;
-	unsigned char* ptr = img.ptr();
-	for (size_t i = 0; i < rows*cols / 2; i++)
-	{
-		size_t o = rows*cols - i - 1;
-		int p = ptr[3*i + 0];
-		ptr[3*i + 0] = ptr[3*o + 0];
-		ptr[3*o + 0] = p;
-		p = ptr[3*i + 1];
-		ptr[3*i + 1] = ptr[3*o + 1];
-		ptr[3*o + 1] = p;
-		p = ptr[3*i + 2];
-		ptr[3*i + 2] = ptr[3*o + 2];
-		ptr[3*o + 2] = p;
-	}
-
-	return;
-}
-
 int startCamera(FILE* in, FILE* out, FILE* log, FlyCapture2::PGRGuid guid, bool flip)
 {
 	FlyCapture2::Error error;
@@ -157,7 +135,7 @@ int startCamera(FILE* in, FILE* out, FILE* log, FlyCapture2::PGRGuid guid, bool 
 
 				// flip image if flip == true
 				if(flip)
-					flipImage(image);
+					flipImage(image, image, -1);
 
 				// send image
 				imageWrite(out, image);

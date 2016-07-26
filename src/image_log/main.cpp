@@ -8,6 +8,8 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
+#include <unistd.h>
+
 // argv[1] = prefix (including path)
 // argv[2] = suffix (not including extension)
 int main(int argc, char** argv)
@@ -39,6 +41,8 @@ int main(int argc, char** argv)
 		int c = fgetc(in);
 		if (c == EOF) quit = true;
 		else ungetc(c, in);
+		
+		usleep(250000);
 	}
 	return 0;
 }

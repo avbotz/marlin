@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 		//gotta keep reading so input doesn't get blocked
 		auto img = imageRead(in);
 	
-		if(cycles > 500000){	
+		if(cycles > 500){	
 			auto now = std::time(NULL);
 			std::tm* local = std::localtime(&now);
 			char date[256];

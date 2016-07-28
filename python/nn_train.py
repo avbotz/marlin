@@ -23,9 +23,9 @@ numFeatures = 4
 numOutputs = 1
 
 #positive = td.orange_torpedo_cover * 10
-positive = td.orange_bin_cover + td.orange_avhs_pool_bin_cover
+positive = td.orange_bin_cover_2016
 #negative = td.yellow_torpedo_board + td.blue_water + td.white_glare + td.white_wall + td.green_wall + td.wall_behind_torpedo + td.avhs_pool_floor
-negative = td.white_bin_border + td.black_bin_background + td.yellow_bin_silhouette + td.green_ground + td.avhs_pool_floor
+negative = td.bin_yellow_torp_2016 + td.bin_background_2016
 
 inputs = np.array(positive + negative, dtype=np.float32) / 256
 targets = np.array([[1]]*len(positive) + [[0]]*len(negative), dtype=np.float32)

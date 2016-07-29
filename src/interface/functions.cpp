@@ -524,10 +524,10 @@ bool control(Data* data, const std::string in_name, const std::string out_name)
 			fflush(out);
 		}
 
-		if (shoot == 'r') fprintf(out, "t r\n");
-		if (shoot == 'l') fprintf(out, "t l\n");
+		if (shoot == 'r') fprintf(out, "r 1\n");
+		if (shoot == 'l') fprintf(out, "r 2\n");
 
-		if (drop) fprintf(out, "d\n");
+		if (drop) fprintf(out, "r 3\n");
 		if (grab) fprintf(out, "g\n");
 		if (release) fprintf(out, "r\n");
 

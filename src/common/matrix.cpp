@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <cstring>
 #include <cmath>
+#include <algorithm>
 
 Matrix::Matrix() :
 	m_rows(0),
@@ -26,6 +27,21 @@ Matrix::Matrix(std::initializer_list<float> values) :
 
 }
 
+Matrix::Matrix(std::initializer_list<Matrix> rows) :
+	m_cols(0),
+	m_rows(0)
+{
+	for (auto r : rows) m_cols = std::max(m_cols, r.size());
+
+	for (auto r : rows)
+	{
+		for (size_t i = 0; i < r.size(); i++)
+			set(m_rows, i, r.get(i));
+
+		m_rows++;
+	}
+}
+
 // <size> <element 1> <element 2> ...
 Matrix::Matrix(FILE* in)
 {
@@ -40,7 +56,7 @@ Matrix::Matrix(FILE* in)
 size_t Matrix::write(FILE* out) const
 {
 	size_t bytes = 0;
-	bytes += std::fprintf(out, "%i %i ", m_rows, m_cols);
+	bytes += std::fprintf(out, "%zu %zu ", m_rows, m_cols);
 	for (int i = 0; i < m_rows * m_cols; i++)
 		bytes += std::fprintf(out, "%f ", m_data[i]);
 	bytes += std::fprintf(out, "\n");
@@ -105,7 +121,7 @@ Matrix Matrix::operator*(const Matrix& a) const
 		{
 			res.m_data[i * res.cols() + j] = 0;
 			for (int k = 0; k < cols(); k++)
-				res.m_data[i * res.cols() + j] += get(i, j) * a.get(k, j);
+				res.m_data[i * res.cols() + j] += get(i, k) * a.get(k, j);
 		}
 	}
 

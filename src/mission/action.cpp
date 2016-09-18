@@ -67,6 +67,81 @@ bool wait(FILE* in, FILE* out, float time)
 
 	@return true unless sub was killed in the process of moving.
 */
+bool doTorpedoes(FILE* in, FILE* out)
+{
+	float vertDist = .1;
+	float horDir = 1;
+
+	setSpeed(in, out, .1);
+
+	FILE* sin = fopen("pipe/sonar_out", "r");
+	FILE* sout = fopen("pipe/sonar_in", "w");
+
+	int idx;
+	float dist;
+
+	fprintf(sout, "f\n");
+	fflush(sout);
+	fscanf(sin, " %i, %f\n", &idx, &dist);
+
+	while (true)
+	{
+		fprintf(sout, "f\n");
+		fflush(sout);
+		fscanf(sin, " %i, %f\n", &idx, &dist);
+
+		if (dist > 6) moveDir(in, out, State(1, 0, 0), 10);
+		else
+		{
+			moveDir(in, out, State(0, 0, 0), 10);
+			break;
+		}
+	}
+
+	moveDir(in, out, State(0, 0, vertDist), .01);
+
+	while (true)
+	{
+		int prev = idx;
+
+		fprintf(sout, "f\n");
+		fflush(sout);
+		fscanf(sin, " %i, %f\n", &idx, &dist);
+
+		if (idx == prev) moveDir(in, out, State(0, horDir, 0), 10);
+		else
+		{
+			moveDir(in, out, State(0, 0, 0), 10);
+			break;
+		}
+	}
+
+	shoot(out, 'l');
+
+	int hole = idx;
+
+	while (true)
+	{
+		int prev = idx;
+
+		fprintf(sout, "f\n");
+		fflush(sout);
+		fscanf(sin, " %i, %f\n", &idx, &dist);
+
+		if (idx <= hole + 1) moveDir(in, out, State(0, -2*horDir, 0), 10);
+		else
+		{
+			moveDir(in, out, State(0, 0, 0), 10);
+			break;
+		}
+	}
+
+	moveDir(in, out, State(0, 0, -2*vertDist), .01);
+	shoot(out, 'r');
+
+	return true;
+}
+
 bool moveAbsolute(FILE* in, FILE* out, const State& target, float minDistance)
 {
 	setState(out, target);
@@ -76,7 +151,11 @@ bool moveAbsolute(FILE* in, FILE* out, const State& target, float minDistance)
 	{
 		State state = getState(in, out);
 
-		if (state.distanceTo(target) < minDistance)
+		if (
+			state.distanceTo(target) < minDistance     &&
+			std::abs(state.yaw() - target.yaw()) < .02 &&
+			true
+		)
 			close = true;
 		else if (!alive(in, out)) return false;
 		else std::this_thread::sleep_for(std::chrono::milliseconds(30));
@@ -212,8 +291,8 @@ bool moveExt(FILE* in, FILE* out, float xa, float xd, int xi, int xr, float ya, 
 
 		auto target = State(
 		{
-			xa + dx + model.get(xi) + xr*cx,
-			ya + dy + model.get(yi) + yr*cy,
+			static_cast<float>(xa + dx + model.get(xi) + xr*cx),
+			static_cast<float>(ya + dy + model.get(yi) + yr*cy),
 			da + model.get(di) + dr*cd,
 			dt,
 			pa,
@@ -246,11 +325,61 @@ bool turnTo(FILE* in, FILE* out, int xi, int yi)
 	return moveExt(in, out, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, theta, 0, 0, 0, 0, .1);
 }
 
+bool alignWith(FILE* in, FILE* out, int hi, int vi, int di, int si)
+{
+	bool close = false;
+	while (!close)
+	{
+		auto state = getState(in, out);
+		auto model = getModel(in, out);
+
+		float h = model.get(hi);
+		float v = model.get(vi);
+		float theta = si >= 0 ? model.get(si) - .25f : state.yaw();
+
+		if (
+			std::abs(theta - state.yaw()) < .05 &&
+			std::abs(h) < .05 &&
+			std::abs(v) < .05 &&
+			true
+		)
+		{
+			close = true;
+			setState(out, state);
+		}
+		else moveExt(in, out, 0, 0, di, 1, 0, h * 1, 0, 1, v * 1, 0, 1, theta, 0, 0, 0, 0, .03);
+	}
+
+	return true;
+}
+
 bool moveModelDir(FILE* in, FILE* out, int xi, int yi, int zi, float xo, float yo, float zo, float minDistance)
 {
 	auto target = State(xo, yo, zo, 0, 0, 0);
 	return (moveModel(in, out, xi, yi, zi, 0, 0, 0, minDistance) 
 		&& moveDir(in, out, target, minDistance));
+}
+
+bool moveUntil(FILE* in, FILE* out, int yaw, int condition, float min, float max)
+{
+	bool close = false;
+	while (!close)
+	{
+		auto state = getState(in, out);
+		auto model = getModel(in, out);
+
+		auto theta = model.get(yaw);
+		auto value = model.get(condition);
+
+		float r = 1.f;
+
+		if (value > min && value < max)
+			close = true;
+		else
+			setState(out, State(state.x() + r * std::cos(theta), state.y() + r * std::sin(theta), state.depth(), theta, 0, 0));
+	}
+
+	return true;
 }
 
 bool dropInBin(FILE* in, FILE* out)
@@ -305,13 +434,13 @@ bool moveToHole(FILE* in, FILE* out, size_t xi, size_t yi, size_t di, float offs
 		float ty = model.get(yi);
 		float td = model.get(di);
 
-		float theta = std::atan2(model.get(M_TORP_L_Y) - model.get(M_TORP_R_Y), model.get(M_TORP_L_X) - model.get(M_TORP_R_X)) + M_PI/2;
+		float theta = model.get(M_TORP_SKEW);
 
 		auto target = State(
-			model.get(xi) - offset*std::cos(theta),
-			model.get(yi) - offset*std::sin(theta),
+			model.get(xi) - offset*std::cos(theta * 2*M_PI),
+			model.get(yi) - offset*std::sin(theta * 2*M_PI),
 			model.get(di),
-			theta / (2*M_PI),
+			theta,
 			0,
 			0
 		);

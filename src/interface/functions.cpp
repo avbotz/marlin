@@ -75,13 +75,21 @@ Evidence observation(FILE* in, const State& state)
 				{y, cy + rho*static_cast<float>(std::sin(theta)), 1},
 			}};
 		}
+		else if (d == -3) // straight evidence: theta = value, rho = variance, phi ignored
+		{
+			return {{{ x, theta/(2*M_PI) - state.yaw(), rho }}};
+		}
+		else if (d == -4) // straight evidence: theta = value, rho = variance, phi = add yaw
+		{
+			return {{{ x, theta/(2*M_PI), rho }}};
+		}
+		else return {};
 	} // otherwise we don't know how to use this observation
 	else return {};
 }
 
-bool hydrophones(Data* data, const std::string in_name, const std::string out_name)
+bool hydrophones(Data* data, const std::string in_name)
 {
-	FILE* out = openStream(out_name, "w");
 	FILE* in = openStream(in_name, "r");
 
 	bool quit = false;
@@ -93,10 +101,6 @@ bool hydrophones(Data* data, const std::string in_name, const std::string out_na
 		data->unlock();
 
 		Evidence evidence = observation(in, state);
-
-		data->lock();
-			data->evidence.push(evidence);
-		data->unlock();
 
 		data->lock();
 			data->evidence.push(evidence);
@@ -529,10 +533,10 @@ bool control(Data* data, const std::string in_name, const std::string out_name)
 			fflush(out);
 		}
 
-		if (shoot == 'r') fprintf(out, "t r\n");
-		if (shoot == 'l') fprintf(out, "t l\n");
+		if (shoot == 'r') fprintf(out, "r 1\n");
+		if (shoot == 'l') fprintf(out, "r 2\n");
 
-		if (drop) fprintf(out, "d\n");
+		if (drop) fprintf(out, "r 3\n");
 		if (grab) fprintf(out, "g\n");
 		if (release) fprintf(out, "r\n");
 

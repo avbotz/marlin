@@ -4,6 +4,7 @@
 #include <queue>
 #include <tuple>
 #include <mutex>
+#include <array>
 
 #include <cv.h>
 #include <cstdint>

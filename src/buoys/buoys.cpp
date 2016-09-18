@@ -29,7 +29,23 @@ std::vector<Buoy> buoys =
 	},
 	{
 		M_YBUOY_X, M_YBUOY_Y, M_YBUOY_D, {1,0,0},
-		[](float r, float g, float b){ return .5+(r+g-b)/4; }
+		nnFilter(
+		{
+			{
+				{  46.85415268, -107.30097198,  100.08049011},
+				{-61.59093475,   95.11291504,   64.77831268},
+				{  24.69617271,  116.03449249, -220.81503296},
+				{-153.43617249,  163.44508362, -111.20446777},
+			},
+			{
+				{-21.81101036},
+				{-124.47380829},
+				{86.83537292},
+				{4.44423008},
+			},
+			{{-9.57674789,  -8.67415428, -70.69998932, -52.24337387},},
+			{{4.38262653}},
+		})
 	},
 	{
 		M_GBUOY_X, M_GBUOY_Y, M_GBUOY_D, {0,1,0},
@@ -38,10 +54,10 @@ std::vector<Buoy> buoys =
 };
 
 const float cropx = 1.0;
-const float cropy = 1.0;
-const float offset = 0.9 * (1 - cropy);
-const float scalex = 64;
-const float scaley = 48;
+const float cropy = 0.6;
+const float offset = 0.0 * (1 - cropy);
+const float scalex = 512;
+const float scaley = 240;
 //const float scalex = 0.2;
 //const float scaley = 0.2;
 const int diffDist = 8;
@@ -147,13 +163,13 @@ int main(int argc, char** argv)
 			auto visited = std::vector<std::vector<bool> >(img.rows, std::vector<bool>(img.cols, false));
 			float size = std::sqrt(floodFill(img, visited, mr, mc, .8 * max) * 4/M_PI);
 
-			float theta = fhFOV * static_cast<float>(mc - img.cols/2) / img.cols;
-			float phi = fvFOV * static_cast<float>(mr - img.rows/2) / img.rows;
-			float dist = std::max(.2, buoyWidth/2 / std::tan(size/img.cols * fvFOV / 2 * 2*M_PI) - 1.f);
+			float theta = cropx *  fhFOV * static_cast<float>(mc - img.cols/2) / img.cols;
+			float phi = cropy * fvFOV * static_cast<float>(mr - img.rows/2) / img.rows;
+			float dist = std::max(.2, buoyWidth/2 / std::tan(size/img.cols * cropy * fvFOV / 2 * 2*M_PI) * .4 - 1.f);
 
 			bool cont = false;
 			for (auto f : found)
-				if (std::abs(theta - f.theta) < .05)
+				if (std::abs(theta - f.theta) < .00)
 					cont = true;
 			if (cont) continue;
 
@@ -178,7 +194,7 @@ int main(int argc, char** argv)
 			cv::circle(imgL, cv::Point(mc, mr), 3, cv::Scalar(255*b.color[0], 255*b.color[1], 255*b.color[2]));
 		}
 
-		fprintf(out, "%u\n", found.size());
+		fprintf(out, "%zu\n", found.size());
 		for (auto f : found)
 			fprintf(out, "%zu %zu %zu\n%f %f %f\n",
 				f.x_idx, f.y_idx, f.d_idx,

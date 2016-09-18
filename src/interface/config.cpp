@@ -17,7 +17,7 @@ std::vector<Connection> defaultConnections()
 		{  vision,   "pipe/bins_out",     "pipe/bins_in",     F_BINS,   I_DOWN  },
 		{  vision,   "pipe/torps_out",    "pipe/torps_in",    F_TORPS,  I_FRONT },
 
-		{  hydrophones, "pipe/hydrophones_out", "pipe/hydrophones_in" },
+		{  hydrophones, "pipe/hydrophones_out" },
 	};
 }
 

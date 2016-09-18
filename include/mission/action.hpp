@@ -26,14 +26,18 @@ private:
 
 bool lprintf(FILE*, FILE*, const std::string);
 
+bool doTorpedoes(FILE*, FILE*);
 bool wait(FILE*, FILE*, float);
 bool moveExt(FILE*, FILE*, float, float, int, int, float, float, int, int, float, int, int, float, int, int, float, float, float);
 bool turnTo(FILE*, FILE*, int, int);
+bool alignWith(FILE*, FILE*, int, int, int, int);
 bool moveAbsolute(FILE*, FILE*, const State&, float);
 bool moveRelative(FILE*, FILE*, const State&, float);
 bool moveDir(FILE*, FILE*, const State&, float);
 bool moveModel(FILE*, FILE*, int, int, int, float, float, float, float);
 bool moveModelDir(FILE*, FILE*, int, int, int, float, float, float, float);
+
+bool moveUntil(FILE*, FILE*, int, int, float, float);
 
 bool dropInBin(FILE*, FILE*);
 bool uncoverBin(FILE*, FILE*);

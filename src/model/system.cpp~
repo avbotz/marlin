@@ -24,7 +24,7 @@ System::System(FILE* in)
 size_t System::write(FILE* out) const
 {
 	size_t bytes;
-	bytes += std::fprintf(out, "%zu %zu\n", maxSize, hypotheses.size());
+	bytes += std::fprintf(out, "%i %i\n", maxSize, hypotheses.size());
 	for (auto h : hypotheses)
 		bytes += h.write(out);
 	bytes += std::fprintf(out, "\n");

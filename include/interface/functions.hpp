@@ -5,7 +5,7 @@
 
 #include "interface/data.hpp"
 
-bool hydrophones(Data*, const std::string, const std::string);
+bool hydrophones(Data*, const std::string);
 
 bool vision(Data*, const std::string, const std::string, size_t, size_t);
 

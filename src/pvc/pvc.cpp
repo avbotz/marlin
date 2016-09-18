@@ -13,10 +13,13 @@
 #include "vision/vision.hpp"
 #include "image/image.hpp"
 
+const float cropx = 1.0;
+const float cropy = 0.4;
+const float offset = 0.0 * (1 - cropy);
+const float scalex = 512;
+const float scaley = 240;
 const float pvcWidth = 2;
 const float minDist = 8;
-const float scalex = 0.4;
-const float scaley = 0.4;
 const float cutoff = 0.8;
 
 auto yfilter = [](float r, float g, float b){return (g - b) * 5 + r;}
@@ -129,7 +132,7 @@ void pResults(FILE* out, std::vector<cv::Point2f>& pts, int cols)
 	float theta = fhFOV * (pts[0].x + pts[1].x - cols) / (2*cols);
 	float dist = pvcWidth/2 / std::tan((std::max(pts[0].x - pts[1].x, pts[1].x - pts[0].x))/cols * fhFOV / 2 * 2*M_PI);
 
-	fprintf(out, "%zu %zu -2\n%f 0 %f\n",
+	fprintf(out, "%i %i -2\n%f 0 %f\n",
 		M_PVC_X, M_PVC_Y,
 		theta, dist);
 	fflush(out);
@@ -151,7 +154,9 @@ int main(int argc, char** argv)
 	{
 		cv::Mat img = imageRead(in); //Read image
 
-		cv::resize(img, img, cv::Size(img.cols*scalex, img.rows*scaley));
+		cv::resize(img(cv::Rect(img.cols*(1-cropx)/2, img.rows*(1-cropy-offset)/2, 
+			img.cols*cropx, img.rows*cropy)), img, 
+			cv::Size(cropx*scalex, cropy*scaley));
 
 		cv::Mat yelo = filter(img, yfilter); //Enhance to make pvc show up
 

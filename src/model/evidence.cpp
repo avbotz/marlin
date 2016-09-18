@@ -24,7 +24,7 @@ Evidence::Evidence(FILE* in)
 size_t Evidence::write(FILE* out) const
 {
 	size_t bytes = 0;
-	bytes += fprintf(out, "%i ", variables.size());
+	bytes += fprintf(out, "%zu ", variables.size());
 	for (auto v : variables)
 		bytes += fprintf(out, "%i %f %f ", v.index, v.value, v.variance);
 	bytes += fprintf(out, "\n");
